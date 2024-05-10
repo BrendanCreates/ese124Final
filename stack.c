@@ -1,85 +1,134 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "stack.h"
+#include <stack.h>
 
-void mark(char (*arr)[MAX_SIZE], Coordinates *coordinates) { //mark position with pheromone
-    Coords current = coordinates->coords[coordinates->top];
-    arr[current.x][current.y] = '+'; // Mark current position with '+'
+void mark(Maze *maze) {
+    maze.map[maze.antPos.x][maze.antPos.y].type = '+';
 }
 
-void move_f(Coordinates *coordinates) { //move forward one
-    coordinates->coords[coordinates->top].x++; //increment x
-}
-
-void move_b(Coordinates *coordinates) { //move backward one
-    coordinates->coords[coordinates->top].x--; //decrement x
-}
-
-void move_l(Coordinates *coordinates) { //move left one
-    coordinates->coords[coordinates->top].y--; //decrement y
-}
-
-void move_r(Coordinates *coordinates) { //move right one
-    coordinates->coords[coordinates->top].y++; //increment y
-}
-
-int cwf(char arr[][MAX_SIZE], Coordinates *coordinates) {
-    Coords current = coordinates->coords[coordinates->top]; // Access the last element in the array
-    for (int i = 1; current.x + i < MAX_SIZE; i++) { // Corrected loop condition
-        if (arr[current.x + i][current.y] == '*')
-            return 0;
+int move_f(Maze *maze) {
+    int returnVal = 0;
+    if(maze.map[maze.antPos.x+1][maze.antPos.y].type != '*' && maze.antPos.x+1 < maze.xSize)
+    {
+        maze.antPos.x += 1;
+        returnVal = maze.map[maze.antPos.x][maze.antPos.y].deed;
+        if(returnVal != 0)
+        { 
+            maze.map[maze.antPos.x][maze.antPos.y].deed = 0; 
+            maze.map[maze.antPos.x][maze.antPos.y].type = ' ';
+        }
     }
-    return 1;
+    return returnVal;
 }
 
-int cwb(char arr[][MAX_SIZE], Coordinates *coordinates) { //checks if the next locations in the back are pheromone free
-    Coords current = coordinates->coords[coordinates->top];
-    int i;
-    for (i = 1; current.x - i <= 0; i++) {
-        if (arr[current.x - i][current.y] == '*')
-            return 0;
+int move_b(Maze *maze) {
+    int returnVal = 0;
+    if(maze.map[maze.antPos.x-1][maze.antPos.y].type != '*' && maze.antPos.x-1 >= 0)
+    {
+        maze.antPos.x -= 1;
+        returnVal = maze.map[maze.antPos.x][maze.antPos.y].deed;
+        if(returnVal != 0)
+        { 
+            maze.map[maze.antPos.x][maze.antPos.y].deed = 0; 
+            maze.map[maze.antPos.x][maze.antPos.y].type = ' ';
+        }
     }
-    return 1;
+    return returnVal;
 }
 
-int cwl(char arr[][MAX_SIZE], Coordinates *coordinates) {
-    Coords current = coordinates->coords[coordinates->top]; // Access the last element in the array
-    int i;
-    for (i = 1; current.y - i >= 0; i++) { // Corrected loop condition
-        if (arr[current.x][current.y - i] == '*')
-            return 0;
+int move_l(Maze *maze) {
+    int returnVal = 0;
+    if(maze.map[maze.antPos.x][maze.antPos.y-1].type != '*' && maze.antPos.y-1 >= 0)
+    {
+        maze.antPos.y -= 1;
+        returnVal = maze.map[maze.antPos.x][maze.antPos.y].deed;
+        if(returnVal != 0)
+        { 
+            maze.map[maze.antPos.x][maze.antPos.y].deed = 0; 
+            maze.map[maze.antPos.x][maze.antPos.y].type = ' ';
+        }
     }
-    return 1;
+    return returnVal;
 }
 
-
-int cwr(char arr[][MAX_SIZE], Coordinates *coordinates) { //checks if the next locations to the right are pheromone free
-    Coords current = coordinates->coords[coordinates->top];
-    int i;
-    for (i = 1; current.y + i < 10; i++) {
-        if (arr[current.x][current.y + i] == '*')
-            return 0;
+int move_r(Maze *maze) {
+    int returnVal = 0;
+    if(maze.map[maze.antPos.x][maze.antPos.y+1].type != '*' && maze.antPos.y+1 < maze.ySize)
+    {
+        maze.antPos.y += 1;
+        returnVal = maze.map[maze.antPos.x][maze.antPos.y].deed;
+        if(returnVal != 0)
+        { 
+            maze.map[maze.antPos.x][maze.antPos.y].deed = 0; 
+            maze.map[maze.antPos.x][maze.antPos.y].type = ' ';
+        }
     }
-    return 1;
+    return returnVal;
 }
 
-void push(Coords coord, Coordinates *coordinates) {
-    coordinates->top += 1;
-    coordinates->coords[coordinates->top] = coord;
+int cwf(Maze *maze) {
+    int freeSpots = 0;
+    Coord c = maze.map[maze.antPos.x+1][maze.antPos.y];
+    while(c.type != '*' && c.type != '+')
+    {
+        if(c.x >= maze.xSize) {break;}
+        freeSpots++;
+        c =maze.map[c.x+1][c.y];
+    }
+    return freeSpots;
 }
 
-Coords pop(Coordinates *coordinates) {
-    Coords temp = coordinates->coords[coordinates->top];
-    coordinates->top = coordinates->top - 1;
-    return temp;
+int cwb(Maze *maze) {
+    int freeSpots = 0;
+    Coord c = maze.map[maze.antPos.x-1][maze.antPos.y];
+    while(c.type != '*' && c.type != '+')
+    {
+        if(c.x < 0) {break;}
+        freeSpots++;
+        c =maze.map[c.x-1][c.y];
+    }
+    return freeSpots;
 }
 
-Coords peek(Coordinates *coordinates) {
-    return coordinates->coords[coordinates->top];
+int cwl(Maze *maze) {
+    int freeSpots = 0;
+    Coord c = maze.map[maze.antPos.x][maze.antPos.y-1];
+    while(c.type != '*' && c.type != '+')
+    {
+        if(c.y < 0) {break;}
+        freeSpots++;
+        c =maze.map[c.x][c.y-1];
+    }
+    return freeSpots;
 }
 
-void clear(Coordinates *coordinates) {
-    coordinates->top = -1;
+int cwr(Maze *maze) {
+    int freeSpots = 0;
+    Coord c = maze.map[maze.antPos.x][maze.antPos.y+1];
+    while(c.type != '*' && c.type != '+')
+    {
+        if(c.y >= maze.ySize) {break;}
+        freeSpots++;
+        c =maze.map[c.x][c.y+1];
+    }
+    return freeSpots;
 }
 
+void push(Coord coord, AntMemory *coordinates) {
+    coordinates.top += 1;
+    coordinates.coords[coordinates.top] = coord;
+}
+
+Coord pop(AntMemory *coordinates) {
+    return coordinates.coords[coordinates.top];
+    coordinates.top = coordinates.top - 1;
+}
+
+Coord peek(AntMemory *coordinates) {
+    return coordinates.coords[coordinates.top];
+}
+
+void clear(AntMemory *coordinates) {
+    coordinates.top = -1;
+}

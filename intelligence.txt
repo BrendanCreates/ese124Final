@@ -1,0 +1,12 @@
+cwf
+cwb
+cwl
+cwr
+move_f
+mark
+move_b
+mark
+move_r
+mark
+move_l
+mark
